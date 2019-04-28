@@ -3,11 +3,10 @@ import logging
 import aiomysql
 
 
-@asyncio.coroutine
-def create_pool(loop, **kw):
+async def create_pool(loop, **kw):
     logging.info('create database connect pool ...')
     global __pool
-    __pool = yield from aiomysql.create_pool(
+    __pool = await aiomysql.create_pool(
         host=kw.get('host', '172.20.10.11'),
         port=kw.get('port', 3306),
         user=kw['user'],
@@ -21,18 +20,17 @@ def create_pool(loop, **kw):
     )
 
 
-@asyncio.coroutine
-def select(sql, args, size=None):
+async def select(sql, args, size=None):
     # log(sql, args)
     global __pool
-    with (yield from __pool) as conn:
-        cur = yield from conn.cursor(asyncio.DictCursor)
-        yield from cur.execute(sql.replace('?', '%s'), args or ())
+    with (await __pool) as conn:
+        cur = await conn.cursor(asyncio.DictCursor)
+        await cur.execute(sql.replace('?', '%s'), args or ())
         if size:
-            rs = yield from cur.fetchmay(size)
+            rs = await cur.fetchmay(size)
         else:
-            rs = yield from cur.fetchall()
-        yield from cur.close()
+            rs = await cur.fetchall()
+        await cur.close()
         logging.info('rows returned: %s' % len(rs))
         return rs
 
@@ -40,12 +38,12 @@ def select(sql, args, size=None):
 @asyncio.coroutine
 def execute(sql, args):
     # log(sql)
-    with (yield from __pool) as conn:
+    with (await __pool) as conn:
         try:
-            cur = yield from conn.cursor()
-            yield from cur.execute(sql.replace('?', '%s'), args)
+            cur = await conn.cursor()
+            await cur.execute(sql.replace('?', '%s'), args)
             affected = cur.rowcount
-            yield from cur.close()
+            await cur.close()
         except BaseException as e:
             raise
         return affected
