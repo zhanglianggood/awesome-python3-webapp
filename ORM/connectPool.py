@@ -21,9 +21,9 @@ async def create_pool(loop, **kw):
 
 
 async def select(sql, args, size=None):
-    # log(sql, args)
+    #log(sql, args)
     global __pool
-    with (await __pool) as conn:
+    async with __pool.get() as conn:
         cur = await conn.cursor(asyncio.DictCursor)
         await cur.execute(sql.replace('?', '%s'), args or ())
         if size:
@@ -35,10 +35,9 @@ async def select(sql, args, size=None):
         return rs
 
 
-@asyncio.coroutine
-def execute(sql, args):
+async def execute(sql, args):
     # log(sql)
-    with (await __pool) as conn:
+    async with __pool.get() as conn:
         try:
             cur = await conn.cursor()
             await cur.execute(sql.replace('?', '%s'), args)
