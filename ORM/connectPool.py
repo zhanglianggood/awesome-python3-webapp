@@ -1,12 +1,13 @@
 import asyncio
 import logging
+import aiomysql
 
 
 @asyncio.coroutine
 def create_pool(loop, **kw):
     logging.info('create database connect pool ...')
     global __pool
-    __pool = yield from asyncio.create_pool(
+    __pool = yield from aiomysql.create_pool(
         host=kw.get('host', '172.20.10.11'),
         port=kw.get('port', 3306),
         user=kw['user'],

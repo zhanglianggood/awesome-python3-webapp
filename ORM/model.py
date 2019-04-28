@@ -21,7 +21,7 @@ class Model(dict, metaclass=ModelMetaclass):
         return getattr(self, key, None)
 
     def getValueOrDefault(self, key):
-        value = self.getValue(key, None)
+        value = self.getValue(key)
         if value is None:
             field = self.__mappings__[key]
             if field.default is not None:
